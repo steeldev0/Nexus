@@ -6,8 +6,6 @@ import os
 import asyncio
 import re
 from urllib.parse import urlparse
-from flask import Flask, request
-import threading
 
 intents = nextcord.Intents.default()
 intents.message_content = True
@@ -184,7 +182,7 @@ async def delete_message(message):
     except nextcord.Forbidden:
         pass
 
-def load_commands(directory):
+async def load_commands(directory):
     for filename in os.listdir(directory):
         if filename.endswith('.py'):
             with open(os.path.join(directory, filename), 'r', encoding="utf-8") as file:
