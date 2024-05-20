@@ -6,6 +6,8 @@ import os
 import asyncio
 import re
 from urllib.parse import urlparse
+from flask import Flask, request
+import threading
 
 intents = nextcord.Intents.default()
 intents.message_content = True
@@ -182,7 +184,7 @@ async def delete_message(message):
     except nextcord.Forbidden:
         pass
 
-async def load_commands(directory):
+def load_commands(directory):
     for filename in os.listdir(directory):
         if filename.endswith('.py'):
             with open(os.path.join(directory, filename), 'r', encoding="utf-8") as file:
@@ -190,4 +192,4 @@ async def load_commands(directory):
 
 load_commands("src/commands")
 
-bot.run('now ur job is to put ur token here, (bot token to be exact)')
+bot.run('here goes ur bot token, make sure to enable the message content intent in developer portal, then add ur token here')
