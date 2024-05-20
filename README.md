@@ -11,5 +11,8 @@
 3. Setting nexus up
    **Now you go to main.py, and scroll to the bottom, you should find text saying put your token here, just replace the text with your discord bot token, make sure message content intent is enabled in discord developer portal**
 
+4. Starting nexus
+   **To start nexus, you run "python3 main.py", then nexus is fully set up and working!**
+
 **Nexus is successfully set up now, if you encounter any problems, text @steeldev on discord or join our [support server](https://discord.gg/mcdK88yUgF) for support!**
 **Be sure to give nexus credits if you have forked it. Do not mark nexus forks as your own**
