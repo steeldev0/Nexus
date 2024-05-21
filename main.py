@@ -156,9 +156,7 @@ async def send_embed(message):
             if referenced_message and referenced_message.author.bot:
                 referenced_description = referenced_message.embeds[0].description
                 original_sender = referenced_message.embeds[0].author.name.split(' | ')[0]
-                embed.title = f"RE: {original_sender}"
-                embed.insert_field_at(0, name = f"RE: {original_sender}", value=message.content)
-                embed.insert_field_at(1, name = f"MSG: {message.author.id}", value=referenced_description, inline=False)
+                embed.insert_field_at(1, name = f"RE: {original_sender}", value=referenced_description, inline=False)
                 
         
         c.execute("SELECT channel_id FROM channel_settings")
@@ -192,4 +190,4 @@ def load_commands(directory):
 
 load_commands("src/commands")
 
-bot.run('here goes ur bot token, make sure to enable the message content intent in developer portal, then add ur token here')
+bot.run('Please insert your token here. Make sure that the "Message Content Intent" is enabled in the developer portal.')
