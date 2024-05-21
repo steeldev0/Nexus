@@ -7,7 +7,9 @@ import asyncio
 import re
 from urllib.parse import urlparse
 import threading
+import platform
 
+startTime = datetime.now()
 intents = nextcord.Intents.default()
 intents.message_content = True
 intents.guilds = True
@@ -191,4 +193,4 @@ def load_commands(directory):
 
 load_commands("src/commands")
 
-bot.run('here goes ur bot token, make sure to enable the message content intent in developer portal, then add ur token here')
+bot.run('Place your token here. Make sure the "Message content intent" is enabled.')
