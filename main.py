@@ -158,8 +158,8 @@ async def send_embed(message):
             if referenced_message and referenced_message.author.bot:
                 referenced_description = referenced_message.embeds[0].description
                 original_sender = referenced_message.embeds[0].author.name.split(' | ')[0]
-                embed.insert_field_at(1, name = f"RE: {original_sender}", value=referenced_description, inline=False)
-                
+                embed.insert_field_at(0, name="Original Message", value=referenced_description, inline=False)
+                embed.description = message.content
         
         c.execute("SELECT channel_id FROM channel_settings")
         results = c.fetchall()
