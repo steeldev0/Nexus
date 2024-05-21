@@ -158,6 +158,7 @@ async def send_embed(message):
             if referenced_message and referenced_message.author.bot:
                 referenced_description = referenced_message.embeds[0].description
                 original_sender = referenced_message.embeds[0].author.name.split(' | ')[0]
+                embed.title = f"RE: {original_sender}"
                 embed.insert_field_at(0, name="Original Message", value=referenced_description, inline=False)
                 embed.description = message.content
         
