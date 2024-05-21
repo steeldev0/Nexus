@@ -1,4 +1,4 @@
-# Setting up nexus
+# Setting up Nexus
 
 **To start forking nexus, here's how you can do it :**
 
@@ -16,7 +16,7 @@
 
 5. Starting nexus
 
-   **To start nexus, you run "python3 main.py", then nexus is fully set up and working!**
+   **To start nexus, you run "python3 main.py", then Nexus is fully set up and working!**
 
 **Nexus is successfully set up now, if you encounter any problems, text @steeldev on discord or join our [support server](https://discord.gg/mcdK88yUgF) for support!**
 **Be sure to give nexus credits if you have forked it. Do not mark nexus forks as your own**
