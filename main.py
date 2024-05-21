@@ -6,7 +6,6 @@ import os
 import asyncio
 import re
 from urllib.parse import urlparse
-from flask import Flask, request
 import threading
 
 intents = nextcord.Intents.default()
