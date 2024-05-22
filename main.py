@@ -3,6 +3,7 @@ from nextcord.ext import commands, tasks
 import sqlite3
 from datetime import datetime, timedelta
 import os
+import json
 import asyncio
 import re
 from urllib.parse import urlparse
@@ -36,13 +37,11 @@ async def reload_roles():
         with open("admins.txt", "r", encoding="utf-8") as file:
             admin_ids = [int(line.strip()) for line in file]
 
-        with open("settings.txt", "r", encoding="utf-8") as file:
-            settings = {line.split('=')[0].strip(): line.split('=')[1].strip() for line in file}
-            admin_emoji = settings.get('admin_emoji', '🛡️')
-            owner_emoji = settings.get('owner_emoji', '👑')
-
-        with open("owners.txt", "r", encoding="utf-8") as file:
-            owner_ids = [int(line.strip()) for line in file]
+        with open("settings.json", "r", encoding="utf-8") as file:
+            settings = json.load(file)
+            admin_emoji = settings["admin_emoji"]
+            owner_emoji = settings["owner_emoji"]
+            owner_ids = settings["owner_ids"]
         
         await asyncio.sleep(5)
 
