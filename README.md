@@ -12,7 +12,7 @@
 
 4. Setting nexus up
 
-   **Now you go to main.py, and scroll to the bottom, you should find text saying put your token here, just replace the text with your discord bot token, make sure message content intent is enabled in discord developer portal**
+   **Now make a file called .env, and add a line like `TOKEN=<your_bot_token>`. make sure message content intent is enabled in discord developer portal**
 
 5. Starting nexus
 

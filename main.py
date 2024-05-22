@@ -1,6 +1,7 @@
 import nextcord
 from nextcord.ext import commands, tasks
 import sqlite3
+import dotenv
 from datetime import datetime, timedelta
 import os
 import json
@@ -9,6 +10,8 @@ import re
 from urllib.parse import urlparse
 import threading
 import platform
+
+dotenv.load_dotenv()
 
 startTime = datetime.now()
 intents = nextcord.Intents.default()
@@ -192,4 +195,4 @@ def load_commands(directory):
 
 load_commands("src/commands")
 
-bot.run('Place your token here. Make sure the "Message content intent" is enabled.')
+bot.run(os.environ["TOKEN"])
