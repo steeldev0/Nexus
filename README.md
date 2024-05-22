@@ -12,7 +12,7 @@
 
 4. Setting Nexus up
 
-   **Now go to .env.example.txt, you should find text saying put your token here, just replace the text with your Discord bot token, make sure message content intent is enabled in the Discord Developer Portal. Then, rename the file to just .env**
+   **Now go to .env.example.txt, you should find text saying put your token here, just replace the text with your Discord bot token, make sure message content intent is enabled in the Discord Developer Portal. Then, rename the file to just ".env"**
 
 5. Starting nexus
 
