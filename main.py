@@ -8,11 +8,14 @@ import re
 from urllib.parse import urlparse
 import threading
 import platform
+from dotenv import load_dotenv
+
 
 startTime = datetime.now()
 intents = nextcord.Intents.default()
 intents.message_content = True
 intents.guilds = True
+load_dotenv()
 
 bot = commands.Bot(command_prefix='!', intents=intents)
 
@@ -193,6 +196,6 @@ def load_commands(directory):
                 exec(file.read())
 
 load_commands("src/commands")
-
-bot.run('Place your token here. Make sure the "Message content intent" is enabled.')
+DISCORD_TOKEN = os.getenv('DISCORD_TOKEN')
+bot.run(DISCORD_TOKEN)
 
