@@ -1,3 +1,4 @@
 .env
 venv
 nexus.db
+__pycache__

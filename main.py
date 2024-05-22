@@ -1,8 +1,8 @@
 import nextcord
 from nextcord.ext import commands, tasks
-import sqlite3
 import dotenv
-from datetime import datetime, timedelta
+# from datetime import datetime, timedelta
+import datetime
 import os
 import json
 import asyncio
@@ -10,10 +10,11 @@ import re
 from urllib.parse import urlparse
 import threading
 import platform
+from db import *
 
 dotenv.load_dotenv()
 
-startTime = datetime.now()
+startTime = datetime.datetime.now()
 intents = nextcord.Intents.default()
 intents.message_content = True
 intents.guilds = True
@@ -26,13 +27,6 @@ async def update_status():
     for status in statuses:
         await bot.change_presence(activity=nextcord.Game(name=status))
         await asyncio.sleep(5)
-
-conn = sqlite3.connect('nexus.db')
-c = conn.cursor()
-
-c.execute('''CREATE TABLE IF NOT EXISTS channel_settings
-             (server_id INTEGER, channel_id INTEGER, PRIMARY KEY (server_id, channel_id))''')
-conn.commit()
 
 async def reload_roles():
     global admin_ids, owner_ids, admin_emoji, owner_emoji
@@ -58,11 +52,11 @@ async def on_ready():
 update_status_loop = tasks.loop(seconds=5)(update_status)
 
 def format_timestamp(timestamp):
-    now = datetime.utcnow()
-    message_time = datetime.utcfromtimestamp(timestamp)
+    now = datetime.datetime.now(datetime.UTC)
+    message_time = datetime.datetime.fromtimestamp(timestamp, datetime.UTC)
     if message_time.date() == now.date():
         return f"Today at {message_time.strftime('%I:%M %p')}"
-    elif message_time.date() == now.date() - timedelta(days=1):
+    elif message_time.date() == now.date() - datetime.timedelta(days=1):
         return f"Yesterday at {message_time.strftime('%I:%M %p')}"
     else:
         return message_time.strftime('%Y-%m-%d at %I:%M %p')
@@ -88,9 +82,12 @@ async def on_message(message):
         await message.delete()
         return
 
-    c.execute("SELECT channel_id FROM channel_settings WHERE server_id = ?", (message.guild.id,))
-    set_channel_id = c.fetchone()
-    if set_channel_id and message.channel.id == set_channel_id[0]:
+    set_channel_id = Channel.select(Channel.channel_id).where(Channel.server_id == message.guild.id)
+
+    if not set_channel_id:
+        return
+
+    if message.channel.id == set_channel_id[0].channel_id:
         links = re.findall(r'https?://\S+', message.content)
         if links:
             unblocked_domains = []
@@ -164,11 +161,10 @@ async def send_embed(message):
                 embed.insert_field_at(0, name="Original Message", value=referenced_description, inline=False)
                 embed.description = message.content
         
-        c.execute("SELECT channel_id FROM channel_settings")
-        results = c.fetchall()
+        results = Channel.select(Channel.channel_id)
         tasks = []
         for result in results:
-            channel_id = result[0]
+            channel_id = result.channel_id
             channel = bot.get_channel(channel_id)
             if channel:
                 tasks.append(send_message(channel, embed))
