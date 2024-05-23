@@ -66,22 +66,6 @@ def format_timestamp(timestamp):
 async def on_message(message):
     if message.author.bot or message.content.startswith('/'):
         return
-    with open("banned_users.txt", "r") as banned_file:
-        banned_users = banned_file.readlines()
-        banned_users = [user.strip() for user in banned_users]
-
-    if str(message.author.id) in banned_users:
-        embed = nextcord.Embed(
-            title="You are banned from using Nexus",
-            description="Please contact an administrator for more information.",
-            color=nextcord.Color.red()
-        )
-        try:
-            await message.author.send(embed=embed)
-        except nextcord.Forbidden:
-            pass
-        await message.delete()
-        return
 
     set_channel_id = Channel.select(Channel.channel_id).where(Channel.server_id == message.guild.id)
 
@@ -89,6 +73,23 @@ async def on_message(message):
         return
 
     if message.channel.id == set_channel_id[0].channel_id:
+        with open("banned_users.txt", "r") as banned_file:
+            banned_users = banned_file.readlines()
+            banned_users = [user.strip() for user in banned_users]
+
+        if str(message.author.id) in banned_users:
+            embed = nextcord.Embed(
+                title="You are banned from using Nexus",
+                description="Please contact an administrator for more information.",
+                color=nextcord.Color.red()
+            )
+            try:
+                await message.author.send(embed=embed)
+            except nextcord.Forbidden:
+                pass
+            await message.delete()
+            return
+
         links = re.findall(r'https?://\S+', message.content)
         if links:
             unblocked_domains = []
@@ -191,5 +192,5 @@ def load_commands(directory):
                 exec(file.read())
 
 load_commands("src/commands")
-
-bot.run(os.environ["TOKEN"])
+DISCORD_TOKEN = os.getenv('DISCORD_TOKEN')
+bot.run(DISCORD_TOKEN)
