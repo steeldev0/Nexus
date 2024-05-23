@@ -39,6 +39,7 @@ async def reload_roles():
             admin_emoji = settings["admin_emoji"]
             owner_emoji = settings["owner_emoji"]
             owner_ids = settings["owner_ids"]
+            owner_ids = [int(id) for id in owner_ids]
         
         await asyncio.sleep(5)
 
