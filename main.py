@@ -220,8 +220,10 @@ async def send_message(channel, embed):
              os.remove("output.gif")
              os.remove("image")
           except:
-             await channel.send("An error occured while sending your image. Please try again.")
-             await channel.send("NOTE: Usually this happens when your file has too much frames, or when you use a unsupported file format!")
+             # Uncommented due to spamming
+             # await channel.send("An error occured while sending your image. Please try again.")
+             # await channel.send("NOTE: Usually this happens when your file has too much frames, or when you use a unsupported file format!")
+             return
         else:
           await channel.send(embed=embed)
     except nextcord.Forbidden:
