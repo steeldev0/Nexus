@@ -9,7 +9,7 @@ from urllib.parse import urlparse
 import threading
 import platform
 from dotenv import load_dotenv
-
+from pathlib import Path
 
 startTime = datetime.now()
 intents = nextcord.Intents.default()
@@ -20,7 +20,6 @@ load_dotenv()
 bot = commands.Bot(command_prefix='!', intents=intents)
 
 statuses = ["Connecting servers", "Chatting with other servers", "Making servers popular"]
-
 async def update_status():
     for status in statuses:
         await bot.change_presence(activity=nextcord.Game(name=status))
@@ -144,8 +143,11 @@ async def send_embed(message):
             embed.set_author(name=f"{message.author.display_name} | {message.author.id} | {admin_emoji if message.author.id in admin_ids else ''} {owner_emoji if message.author.id in owner_ids else ''}")
 
         if message.attachments:
-            embed.set_image(url=message.attachments[0].url)
-        
+            for attachment in message.attachments:
+                await attachment.save("image.jpeg")
+
+            
+            
         if message.author.id in admin_ids or message.author.id in owner_ids:
             embed.color = nextcord.Color.red()
 
@@ -176,12 +178,22 @@ async def send_embed(message):
                 tasks.append(send_message(channel, embed))
 
         await asyncio.gather(*tasks)
-
+xy_file = Path('image.jpeg')
 async def send_message(channel, embed):
     try:
-        await channel.send(embed=embed)
+        if xy_file.is_file():
+          try:
+             file = nextcord.File("image.jpeg")
+             embed.set_image(url="attachment://image.jpeg")
+             await channel.send(embed=embed, file=file)
+             os.remove("image.jpeg")
+          except:
+             await channel.send("An error occured while sending your image. Please try again.")
+        else:
+          await channel.send(embed=embed)
     except nextcord.Forbidden:
         pass
+        
 
 async def delete_message(message):
     try:
