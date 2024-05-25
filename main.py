@@ -2,7 +2,7 @@ import nextcord
 from nextcord.ext import commands, tasks
 import sqlite3
 from datetime import datetime, timedelta
-import os
+import os, os.path
 import asyncio
 import re
 from urllib.parse import urlparse
@@ -10,6 +10,9 @@ import threading
 import platform
 from dotenv import load_dotenv
 from pathlib import Path
+import glob
+import cv2
+from PIL import Image
 
 startTime = datetime.now()
 intents = nextcord.Intents.default()
@@ -144,10 +147,38 @@ async def send_embed(message):
 
         if message.attachments:
             for attachment in message.attachments:
-                await attachment.save("image.jpeg")
-
-            
-            
+                await attachment.save("image") 
+                video_capture = cv2.VideoCapture("image")
+                still_reading, image = video_capture.read()
+                frame_count = 0
+                while still_reading:
+                    cv2.imwrite(f"tempframes/frame_{frame_count:03d}.jpg", image)
+                    still_reading, image = video_capture.read()
+                    frame_count += 1
+                listfiles = next(os.walk("tempframes"))[2]
+                files = len(listfiles)
+                print(files)
+                if files > 150:
+                    print ("Too much frames.")
+                    files = os.listdir("tempframes")
+                    for file in files:
+                        file_path = os.path.join("tempframes", file)
+                        if os.path.isfile(file_path):
+                            os.remove(file_path)
+                    print("Temporary frames cleaned.")
+                    return
+                else: 
+                    images = glob.glob(f"tempframes/*.jpg")
+                    images.sort()
+                    frames = [Image.open(image) for image in images]
+                    frame_one = frames[0]
+                    frame_one.save("output.gif", format="GIF", append_images=frames, save_all=True, fps=5, loop=0, quality=50, optimize=True)
+                    files = os.listdir("tempframes")
+                    for file in files:
+                        file_path = os.path.join("tempframes", file)
+                        if os.path.isfile(file_path):
+                            os.remove(file_path)
+                    print("Temporary frames cleaned.")
         if message.author.id in admin_ids or message.author.id in owner_ids:
             embed.color = nextcord.Color.red()
 
@@ -178,17 +209,19 @@ async def send_embed(message):
                 tasks.append(send_message(channel, embed))
 
         await asyncio.gather(*tasks)
-xy_file = Path('image.jpeg')
+xy_file = Path('output.gif')
 async def send_message(channel, embed):
     try:
         if xy_file.is_file():
           try:
-             file = nextcord.File("image.jpeg")
-             embed.set_image(url="attachment://image.jpeg")
+             file = nextcord.File("output.gif", filename='attch.gif')
+             embed.set_image(url="attachment://attch.gif")
              await channel.send(embed=embed, file=file)
-             os.remove("image.jpeg")
+             os.remove("output.gif")
+             os.remove("image")
           except:
              await channel.send("An error occured while sending your image. Please try again.")
+             await channel.send("NOTE: Usually this happens when your file has too much frames, or when you use a unsupported file format!")
         else:
           await channel.send(embed=embed)
     except nextcord.Forbidden:
@@ -197,6 +230,7 @@ async def send_message(channel, embed):
 
 async def delete_message(message):
     try:
+        await asyncio.sleep(0.89)
         await message.delete()
     except nextcord.Forbidden:
         pass
