@@ -2,3 +2,6 @@ nextcord
 asyncio
 setuptools
 python-dotenv
+pathlib 
+pillow
+opencv-python
