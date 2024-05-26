@@ -146,6 +146,8 @@ async def send_embed(message):
         if message.attachments:
             for attachment in message.attachments:
                 await attachment.save(attachment.filename)
+            for file in glob.glob('*.{mp4,avi}', flags=glob.BRACE):
+                embed.add_field(name=":arrow_up: VIDEO :arrow_up:", value="The author of this message sent the video above.", inline=False)
         if message.author.id in admin_ids or message.author.id in owner_ids:
             embed.color = nextcord.Color.red()
 
@@ -194,7 +196,6 @@ async def send_message(channel, embed):
                 file_dsc = nextcord.File(file, filename="media.mp4")
                 print("Sending .mp4...")
                 embed.video.url = "attachment://media.mp4"
-                embed.add_field(name=":arrow_up: VIDEO :arrow_up:", value="The author of this message sent the video above.", inline=False)
         glob_search = glob.glob('*.{mp4,avi,jpg,png,webp,jpeg,avi,gif}', flags=glob.BRACE)
         if not glob_search:
              print('Normal message is being sent!')
