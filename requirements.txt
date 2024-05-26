@@ -2,3 +2,4 @@ nextcord
 asyncio
 setuptools
 python-dotenv
+wcmatch

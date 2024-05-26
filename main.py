@@ -9,7 +9,7 @@ from urllib.parse import urlparse
 import threading
 import platform
 from dotenv import load_dotenv
-
+from wcmatch import glob
 
 startTime = datetime.now()
 intents = nextcord.Intents.default()
@@ -144,8 +144,8 @@ async def send_embed(message):
             embed.set_author(name=f"{message.author.display_name} | {message.author.id} | {admin_emoji if message.author.id in admin_ids else ''} {owner_emoji if message.author.id in owner_ids else ''}")
 
         if message.attachments:
-            embed.set_image(url=message.attachments[0].url)
-        
+            for attachment in message.attachments:
+                await attachment.save(attachment.filename)
         if message.author.id in admin_ids or message.author.id in owner_ids:
             embed.color = nextcord.Color.red()
 
@@ -179,7 +179,31 @@ async def send_embed(message):
 
 async def send_message(channel, embed):
     try:
-        await channel.send(embed=embed)
+        for file in glob.glob('*.{jpg,png,bmp,webp,jpeg}', flags=glob.BRACE):
+                print(file)
+                file_dsc = nextcord.File(file, filename="media.jpg")
+                print("Sending .jpg...")
+                embed.set_image(url="attachment://media.jpg")
+        for file in glob.glob('*.gif', flags=glob.BRACE):
+                print(file)
+                file_dsc = nextcord.File(file, filename="media.gif")
+                print("Sending .gif...")
+                embed.set_image(url="attachment://media.jpg")
+        for file in glob.glob('*.{mp4,avi}', flags=glob.BRACE):
+                print(file)
+                file_dsc = nextcord.File(file, filename="media.mp4")
+                print("Sending .mp4...")
+                embed.video.url = "attachment://media.mp4"
+                embed.add_field(name=":arrow_up: VIDEO :arrow_up:", value="The author of this message sent the video above.", inline=False)
+        glob_search = glob.glob('*.{mp4,avi,jpg,png,webp,jpeg,avi,gif}', flags=glob.BRACE)
+        if not glob_search:
+             print('Normal message is being sent!')
+             await channel.send(embed=embed)
+        else:
+            print('Media is being sent!')
+            await channel.send(embed=embed, file=file_dsc)
+            for file in glob.glob('*.{mp4,avi,jpg,png,webp,jpeg,avi,gif}', flags=glob.BRACE):
+                os.remove(file)
     except nextcord.Forbidden:
         pass
 
