@@ -182,26 +182,18 @@ async def send_embed(message):
 async def send_message(channel, embed):
     try:
         for file in glob.glob('*.{jpg,png,bmp,webp,jpeg}', flags=glob.BRACE):
-                print(file)
                 file_dsc = nextcord.File(file, filename="media.jpg")
-                print("Sending .jpg...")
                 embed.set_image(url="attachment://media.jpg")
         for file in glob.glob('*.gif', flags=glob.BRACE):
-                print(file)
                 file_dsc = nextcord.File(file, filename="media.gif")
-                print("Sending .gif...")
                 embed.set_image(url="attachment://media.jpg")
         for file in glob.glob('*.{mp4,avi}', flags=glob.BRACE):
-                print(file)
                 file_dsc = nextcord.File(file, filename="media.mp4")
-                print("Sending .mp4...")
                 embed.video.url = "attachment://media.mp4"
         glob_search = glob.glob('*.{mp4,avi,jpg,png,webp,jpeg,avi,gif}', flags=glob.BRACE)
         if not glob_search:
-             print('Normal message is being sent!')
              await channel.send(embed=embed)
         else:
-            print('Media is being sent!')
             await channel.send(embed=embed, file=file_dsc)
             for file in glob.glob('*.{mp4,avi,jpg,png,webp,jpeg,avi,gif}', flags=glob.BRACE):
                 os.remove(file)
