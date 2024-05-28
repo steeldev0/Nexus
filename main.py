@@ -113,9 +113,8 @@ async def on_message(message):
                     for gif in tenor:
                         tenor_http = requests.get(gif)
                         gif_link = re.findall(r"https?://media1.tenor.com/m\S+.gif", tenor_http.text)
-                        for url in gif_link:
-                            dest = 'tenor.gif'
-                            urlretrieve(url, dest)
+                        dest = 'tenor.gif'
+                        urlretrieve(gif_link[0], dest)
             if not allow_message:
                 embed = nextcord.Embed(
                     title="Alert!",
