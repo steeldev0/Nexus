@@ -6,10 +6,12 @@ import os
 import asyncio
 import re
 from urllib.parse import urlparse
+from urllib.request import urlretrieve
 import threading
 import platform
 from dotenv import load_dotenv
 from wcmatch import glob
+import requests
 
 startTime = datetime.now()
 intents = nextcord.Intents.default()
@@ -99,14 +101,21 @@ async def on_message(message):
             with open("unblocked_links.txt", "r", encoding="utf-8") as file:
                 for line in file:
                     unblocked_domains.append(urlparse(line.strip()).netloc)
-            
             allow_message = False
             for link in links:
                 domain = urlparse(link).netloc
                 if domain in unblocked_domains:
                     allow_message = True
                     break
-            
+            for link in links:
+                tenor = re.findall(r'https?://tenor.com/view\S+', link)
+                if tenor:
+                    for gif in tenor:
+                        tenor_http = requests.get(gif)
+                        gif_link = re.findall(r"https?://media1.tenor.com/m\S+.gif", tenor_http.text)
+                        for url in gif_link:
+                            dest = 'tenor.gif'
+                            urlretrieve(url, dest)
             if not allow_message:
                 embed = nextcord.Embed(
                     title="Alert!",
@@ -186,11 +195,13 @@ async def send_message(channel, embed):
                 embed.set_image(url="attachment://media.jpg")
         for file in glob.glob('*.gif', flags=glob.BRACE):
                 file_dsc = nextcord.File(file, filename="media.gif")
-                embed.set_image(url="attachment://media.jpg")
+                embed.set_image(url="attachment://media.gif")
         for file in glob.glob('*.{mp4,avi}', flags=glob.BRACE):
                 file_dsc = nextcord.File(file, filename="media.mp4")
                 embed.video.url = "attachment://media.mp4"
         glob_search = glob.glob('*.{mp4,avi,jpg,png,webp,jpeg,avi,gif}', flags=glob.BRACE)
+        if os.path.isfile("tenor.gif"):
+            embed.description = ""
         if not glob_search:
              await channel.send(embed=embed)
         else:
