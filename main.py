@@ -186,7 +186,7 @@ async def send_message(channel, embed):
                 embed.set_image(url="attachment://media.jpg")
         for file in glob.glob('*.gif', flags=glob.BRACE):
                 file_dsc = nextcord.File(file, filename="media.gif")
-                embed.set_image(url="attachment://media.jpg")
+                embed.set_image(url="attachment://media.gif")
         for file in glob.glob('*.{mp4,avi}', flags=glob.BRACE):
                 file_dsc = nextcord.File(file, filename="media.mp4")
                 embed.video.url = "attachment://media.mp4"
