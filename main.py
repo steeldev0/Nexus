@@ -95,38 +95,7 @@ async def on_message(message):
             await message.delete()
             return
 
-        links = re.findall(r'https?://\S+', message.content)
-        if links:
-            unblocked_domains = []
-            with open("unblocked_links.txt", "r", encoding="utf-8") as file:
-                for line in file:
-                    unblocked_domains.append(urlparse(line.strip()).netloc)
-            allow_message = False
-            for link in links:
-                domain = urlparse(link).netloc
-                if domain in unblocked_domains:
-                    allow_message = True
-                    break
-            for link in links:
-                tenor = re.findall(r'https?://tenor.com/view\S+', link)
-                if tenor:
-                    for gif in tenor:
-                        tenor_http = requests.get(gif)
-                        gif_link = re.findall(r"https?://media1.tenor.com/m\S+.gif", tenor_http.text)
-                        dest = 'tenor.gif'
-                        urlretrieve(gif_link[0], dest)
-            if not allow_message:
-                embed = nextcord.Embed(
-                    title="Alert!",
-                    description="You cannot send links on Nexus for obvious reasons.",
-                    color=nextcord.Color.red()
-                )
-                try:
-                    await message.author.send(embed=embed)
-                except nextcord.Forbidden:
-                    pass
-                await message.delete()
-                return
+        
 
         await asyncio.gather(
             send_embed(message),
@@ -158,7 +127,38 @@ async def send_embed(message):
                 embed.add_field(name=":arrow_up: VIDEO :arrow_up:", value="The author of this message sent the video above.", inline=False)
         if message.author.id in admin_ids or message.author.id in owner_ids:
             embed.color = nextcord.Color.red()
-
+        links = re.findall(r'https?://\S+', message.content)
+        if links:
+            unblocked_domains = []
+            with open("unblocked_links.txt", "r", encoding="utf-8") as file:
+                for line in file:
+                    unblocked_domains.append(urlparse(line.strip()).netloc)
+            allow_message = False
+            for link in links:
+                domain = urlparse(link).netloc
+                if domain in unblocked_domains:
+                    allow_message = True
+                    break
+            for link in links:
+                tenor = re.findall(r'https?://tenor.com/view\S+', link)
+                if tenor:
+                    for gif in tenor:
+                        tenor_http = requests.get(gif)
+                        gif_link = re.findall(r"https?://media1.tenor.com/m\S+.gif", tenor_http.text)
+                        embed.set_image(gif_link[0])
+                        embed.description = ""
+            if not allow_message:
+                embed = nextcord.Embed(
+                    title="Alert!",
+                    description="You cannot send links on Nexus for obvious reasons.",
+                    color=nextcord.Color.red()
+                )
+                try:
+                    await message.author.send(embed=embed)
+                except nextcord.Forbidden:
+                    pass
+                await message.delete()
+                return
         embed.set_thumbnail(url="https://cdn.discordapp.com/attachments/1090262735478071360/1238197066271031376/NexusChat.png?ex=663e6861&is=663d16e1&hm=9715dd1020c504b6f14bb8b1de8b8c60b0376caadd4ace3b2bc71662b748749f&")
         
         icon_url_guild = message.guild.icon.url if message.guild.icon else None
@@ -199,8 +199,6 @@ async def send_message(channel, embed):
                 file_dsc = nextcord.File(file, filename="media.mp4")
                 embed.video.url = "attachment://media.mp4"
         glob_search = glob.glob('*.{mp4,avi,jpg,png,webp,jpeg,avi,gif}', flags=glob.BRACE)
-        if os.path.isfile("tenor.gif"):
-            embed.description = ""
         if not glob_search:
              await channel.send(embed=embed)
         else:
