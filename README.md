@@ -19,4 +19,4 @@
    **To start Nexus, you run "python3 main.py", then Nexus is fully set up and working!**
 
 **Ghostphones is successfully set up now, if you encounter any problems, text @steeldev on discord or join our [support server](https://discord.gg/mcdK88yUgF) for support!**
-**THIS BOT IS BASED OF NETCORD AND A FORKED VERSION OF NETCORD CALLED NEXUS, THIS CODE IS NOT BY ME, SO CREDITS TO THE SAID DISCORD BOTS AND THEIR RESPECTIVE DEVELOPERS"
+**THIS BOT IS A FORKED VERSION OF NEXUS, THIS CODE IS NOT BY ME, SO CREDITS TO THE SAID DISCORD BOTS AND THEIR RESPECTIVE DEVELOPERS"
