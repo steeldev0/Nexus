@@ -4,3 +4,4 @@ setuptools
 python-dotenv
 wcmatch
 requests
+TenorGrabber
