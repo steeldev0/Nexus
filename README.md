@@ -1,6 +1,6 @@
-# Setting up Nexus
+# Setting up Ghostphones
 
-**To start forking Nexus, here's how you can do it:**
+**To start forking Ghostphones, here's how you can do it:**
 
 1. Installing Python
 
@@ -18,5 +18,5 @@
 
    **To start Nexus, you run "python3 main.py", then Nexus is fully set up and working!**
 
-**Nexus is successfully set up now, if you encounter any problems, text @steeldev on discord or join our [support server](https://discord.gg/mcdK88yUgF) for support!**
-**Be sure to give Nexus credits if you have forked it. Do not mark Nexus forks as your own**
+**Ghostphones is successfully set up now, if you encounter any problems, text @steeldev on discord or join our [support server](https://discord.gg/mcdK88yUgF) for support!**
+**THIS BOT IS BASED OF NETCORD AND A FORKED VERSION OF NETCORD CALLED NEXUS, THIS CODE IS NOT BY ME, SO CREDITS TO THE SAID DISCORD BOTS AND THEIR RESPECTIVE DEVELOPERS"
