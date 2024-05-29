@@ -12,6 +12,7 @@ import platform
 from dotenv import load_dotenv
 from wcmatch import glob
 import requests
+from TenorGrabber import tenorgrabber
 
 startTime = datetime.now()
 intents = nextcord.Intents.default()
@@ -143,9 +144,7 @@ async def send_embed(message):
                 tenor = re.findall(r'https?://tenor.com/view\S+', link)
                 if tenor:
                     for gif in tenor:
-                        tenor_http = requests.get(gif)
-                        gif_link = re.findall(r"https?://media1.tenor.com/m\S+.gif", tenor_http.text)
-                        embed.set_image(gif_link[0])
+                        embed.set_image(tenorgrabber.getgiflink(gif))
                         embed.description = ""
             if not allow_message:
                 embed = nextcord.Embed(
