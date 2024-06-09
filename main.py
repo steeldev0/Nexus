@@ -7,15 +7,17 @@ import asyncio
 import re
 from urllib.parse import urlparse
 import threading
-import platform
 from dotenv import load_dotenv
 from wcmatch import glob
+from flask import Flask, jsonify, request
+
+naviac = 975365560298795008
+last_message = None
 
 startTime = datetime.now()
 intents = nextcord.Intents.default()
 intents.message_content = True
 intents.guilds = True
-load_dotenv()
 
 bot = commands.Bot(command_prefix='!', intents=intents)
 
@@ -34,7 +36,7 @@ c.execute('''CREATE TABLE IF NOT EXISTS channel_settings
 conn.commit()
 
 async def reload_roles():
-    global admin_ids, owner_ids, admin_emoji, owner_emoji
+    global admin_ids, owner_ids, manager_ids, admin_emoji, owner_emoji, manager_emoji
     while True:
         with open("admins.txt", "r", encoding="utf-8") as file:
             admin_ids = [int(line.strip()) for line in file]
@@ -43,9 +45,13 @@ async def reload_roles():
             settings = {line.split('=')[0].strip(): line.split('=')[1].strip() for line in file}
             admin_emoji = settings.get('admin_emoji', '🛡️')
             owner_emoji = settings.get('owner_emoji', '👑')
+            manager_emoji = settings.get('manager_emoji', '🛠️')
 
         with open("owners.txt", "r", encoding="utf-8") as file:
             owner_ids = [int(line.strip()) for line in file]
+
+        with open("managers.txt", "r", encoding="utf-8") as file:
+            manager_ids = [int(line.strip()) for line in file]
         
         await asyncio.sleep(5)
 
@@ -55,7 +61,7 @@ bot.loop.create_task(reload_roles())
 async def on_ready():
     print(f'{bot.user} has connected to Discord!')
     update_status_loop.start()
-    
+
 update_status_loop = tasks.loop(seconds=5)(update_status)
 
 def format_timestamp(timestamp):
@@ -70,56 +76,17 @@ def format_timestamp(timestamp):
 
 @bot.event
 async def on_message(message):
-    if message.author.bot or message.content.startswith('/'):
+    global last_message
+    if (message.author.bot and message.author.id != naviac) or message.content.startswith('/'):
         return
-
     c.execute("SELECT channel_id FROM channel_settings WHERE server_id = ?", (message.guild.id,))
     set_channel_id = c.fetchone()
     if set_channel_id and message.channel.id == set_channel_id[0]:
-        with open("banned_users.txt", "r") as banned_file:
-            banned_users = banned_file.readlines()
-            banned_users = [user.strip() for user in banned_users]
-
-        if str(message.author.id) in banned_users:
-            embed = nextcord.Embed(
-                title="You are banned from using Nexus",
-                description="Please contact an administrator for more information.",
-                color=nextcord.Color.red()
-            )
-            try:
-                await message.author.send(embed=embed)
-            except nextcord.Forbidden:
-                pass
-            await message.delete()
-            return
-
-        links = re.findall(r'https?://\S+', message.content)
-        if links:
-            unblocked_domains = []
-            with open("unblocked_links.txt", "r", encoding="utf-8") as file:
-                for line in file:
-                    unblocked_domains.append(urlparse(line.strip()).netloc)
-            
-            allow_message = False
-            for link in links:
-                domain = urlparse(link).netloc
-                if domain in unblocked_domains:
-                    allow_message = True
-                    break
-            
-            if not allow_message:
-                embed = nextcord.Embed(
-                    title="Alert!",
-                    description="You cannot send links on Nexus for obvious reasons.",
-                    color=nextcord.Color.red()
-                )
-                try:
-                    await message.author.send(embed=embed)
-                except nextcord.Forbidden:
-                    pass
-                await message.delete()
-                return
-
+        last_message = {
+            "username": message.author.name,
+            "content": message.content,
+            "server": message.guild.name
+        }
         await asyncio.gather(
             send_embed(message),
             delete_message(message)
@@ -139,9 +106,17 @@ async def send_embed(message):
         )
         icon_url = message.author.avatar.url if message.author.avatar else None
         if icon_url:
-            embed.set_author(name=f"{message.author.display_name} | {message.author.id} | {admin_emoji if message.author.id in admin_ids else ''} {owner_emoji if message.author.id in owner_ids else ''}", icon_url=icon_url)
+            embed.set_author(name=f"{message.author.display_name} | {message.author.id} | "
+                      f"{admin_emoji if message.author.id in admin_ids else ''} "
+                      f"{owner_emoji if message.author.id in owner_ids else ''} "
+                      f"{manager_emoji if message.author.id in manager_ids else ''}",
+                 icon_url=icon_url)
         else:
-            embed.set_author(name=f"{message.author.display_name} | {message.author.id} | {admin_emoji if message.author.id in admin_ids else ''} {owner_emoji if message.author.id in owner_ids else ''}")
+            embed.set_author(name=f"{message.author.display_name} | {message.author.id} | "
+                      f"{admin_emoji if message.author.id in admin_ids else ''} "
+                      f"{owner_emoji if message.author.id in owner_ids else ''} "
+                      f"{manager_emoji if message.author.id in manager_ids else ''}",
+                 icon_url=icon_url)
 
         if message.attachments:
             for attachment in message.attachments:
@@ -167,7 +142,89 @@ async def send_embed(message):
                 embed.title = f"RE: {original_sender}"
                 embed.insert_field_at(0, name="Original Message", value=referenced_description, inline=False)
                 embed.description = message.content
-        
+
+        c.execute("SELECT channel_id FROM channel_settings")
+        results = c.fetchall()
+        tasks = []
+        for result in results:
+            channel_id = result[0]
+            channel = bot.get_channel(channel_id)
+            if channel:
+                tasks.append(send_message(channel, embed, message.author.id))
+
+        await asyncio.gather(*tasks)
+
+async def send_message(channel, embed, author_id):
+    try:
+        for file in glob.glob('*.{jpg,png,bmp,webp,jpeg}', flags=glob.BRACE):
+            file_dsc = nextcord.File(file, filename="media.jpg")
+            embed.set_image(url="attachment://media.jpg")
+        for file in glob.glob('*.gif', flags=glob.BRACE):
+            file_dsc = nextcord.File(file, filename="media.gif")
+            embed.set_image(url="attachment://media.gif")
+        for file in glob.glob('*.{mp4,avi}', flags=glob.BRACE):
+            file_dsc = nextcord.File(file, filename="media.mp4")
+            embed.video.url = "attachment://media.mp4"
+        glob_search = glob.glob('*.{mp4,avi,jpg,png,webp,jpeg,avi,gif}', flags=glob.BRACE)
+        if not glob_search:
+            await channel.send(embed=embed)
+        else:
+            await channel.send(embed=embed, file=file_dsc)
+            for file in glob.glob('*.{mp4,avi,jpg,png,webp,jpeg,avi,gif}', flags=glob.BRACE):
+                os.remove(file)
+    except nextcord.Forbidden:
+        pass
+    except Exception as e:
+        with open('banned_users.txt', 'a') as f:
+            f.write(f"{author_id}\n")
+
+async def delete_message(message):
+    try:
+        await message.delete()
+    except nextcord.Forbidden:
+        pass
+    
+def load_commands(directory):
+    for filename in os.listdir(directory):
+        if filename.endswith('.py'):
+            with open(os.path.join(directory, filename), 'r', encoding="utf-8") as file:
+                exec(file.read())
+
+load_commands("src/commands")
+
+app = Flask(__name__)
+
+@app.route('/getmessage', methods=['POST', 'GET'])
+def get_last_message():
+    global last_message
+    if request.method == 'POST':
+        return jsonify(last_message)
+    elif request.method == 'GET':
+        if last_message:
+            return jsonify(last_message)
+        else:
+            return jsonify({"message": "No messages sent yet."})
+    
+@app.route('/send_message', methods=['POST'])
+def handle_send_message():
+    username = request.headers.get('username')
+    message = request.headers.get('message')
+    
+    if not username or not message:
+        return "Missing 'username' or 'message' in headers", 400
+    
+    asyncio.run_coroutine_threadsafe(send_global_message(username, message), bot.loop)
+    return "Message sent", 200
+
+async def send_global_message(username, message):
+    try:
+        embed = nextcord.Embed(
+            description=message,
+            color=nextcord.Color.blue()
+        )
+        embed.set_author(name=username)
+        embed.set_footer(text="Global nexus website")
+
         c.execute("SELECT channel_id FROM channel_settings")
         results = c.fetchall()
         tasks = []
@@ -176,43 +233,23 @@ async def send_embed(message):
             channel = bot.get_channel(channel_id)
             if channel:
                 tasks.append(send_message(channel, embed))
-
+        
         await asyncio.gather(*tasks)
 
-async def send_message(channel, embed):
-    try:
-        for file in glob.glob('*.{jpg,png,bmp,webp,jpeg}', flags=glob.BRACE):
-                file_dsc = nextcord.File(file, filename="media.jpg")
-                embed.set_image(url="attachment://media.jpg")
-        for file in glob.glob('*.gif', flags=glob.BRACE):
-                file_dsc = nextcord.File(file, filename="media.gif")
-                embed.set_image(url="attachment://media.jpg")
-        for file in glob.glob('*.{mp4,avi}', flags=glob.BRACE):
-                file_dsc = nextcord.File(file, filename="media.mp4")
-                embed.video.url = "attachment://media.mp4"
-        glob_search = glob.glob('*.{mp4,avi,jpg,png,webp,jpeg,avi,gif}', flags=glob.BRACE)
-        if not glob_search:
-             await channel.send(embed=embed)
-        else:
-            await channel.send(embed=embed, file=file_dsc)
-            for file in glob.glob('*.{mp4,avi,jpg,png,webp,jpeg,avi,gif}', flags=glob.BRACE):
-                os.remove(file)
-    except nextcord.Forbidden:
-        pass
+    except Exception as e:
+        print(f"Error sending global message: {e}")
 
-async def delete_message(message):
-    try:
-        await message.delete()
-    except nextcord.Forbidden:
-        pass
+def run_flask():
+    app.run(host='0.0.0.0', port=25561)
+    
+if __name__ == "__main__":
+    threading.Thread(target=run_flask).start()
+    with open('token.txt', 'r') as file:
+        DISCORD_TOKEN = file.read().strip()
+    bot.run(DISCORD_TOKEN)
 
-def load_commands(directory):
-    for filename in os.listdir(directory):
-        if filename.endswith('.py'):
-            with open(os.path.join(directory, filename), 'r', encoding="utf-8") as file:
-                exec(file.read())
+# wow only 250 lines excluding commands
 
-load_commands("src/commands")
-DISCORD_TOKEN = os.getenv('DISCORD_TOKEN')
-bot.run(DISCORD_TOKEN)
+# all credits go to nexus and steeldev and the nexus team
 
+# thanks for using!

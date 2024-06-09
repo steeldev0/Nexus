@@ -1,3 +1,5 @@
+# watch it bro, u cant change/remove any nexus credits here, u have to give credits for nexus, in any way, u can adjust how credits are given tho
+
 @bot.slash_command(description="Informations about the bot")
 async def about(ctx):
     embed = nextcord.Embed(

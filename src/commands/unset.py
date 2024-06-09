@@ -4,10 +4,10 @@ async def unset(ctx):
         c.execute("SELECT channel_id FROM channel_settings WHERE server_id = ?", (ctx.guild.id,))
         result = c.fetchone()
         if not result:
-            await ctx.send("This server isnt set yet")
+            await ctx.send("This server isn't set yet.")
         else:
             c.execute("DELETE FROM channel_settings WHERE server_id = ?", (ctx.guild.id,))
             conn.commit()
-            await ctx.send("Channel unset successfully")
+            await ctx.send("Channel unset successfully!")
     else:
-        await ctx.send("You need to have the manage server permission to use this command")
+        await ctx.send("You need to have the 'manage server' permission to use this command.")

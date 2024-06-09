@@ -1,2 +1,3 @@
 admin_emoji = 🛡️
 owner_emoji = 👑 
+manager_emoji=🛠️

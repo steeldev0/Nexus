@@ -1,0 +1,1 @@
+place your discord bot token here, make sure all 3 intents are enabled, and make sure to remove everything here before putting your token

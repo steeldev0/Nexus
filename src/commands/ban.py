@@ -19,8 +19,9 @@ async def ban(ctx, user_id: str, *, reason: str):
         )
         await user.send(embed=embed)
     except nextcord.NotFound:
-        await ctx.send("User not found or unable to send a direct message to the user.")
-        return
+        pass
+    except nextcord.Forbidden:
+        pass
 
     with open("banned_users.txt", "a", encoding="utf-8") as file:
         file.write(f"{user_id}\n")
