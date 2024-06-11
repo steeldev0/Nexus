@@ -7,7 +7,6 @@ import asyncio
 import re
 from urllib.parse import urlparse
 import threading
-from dotenv import load_dotenv
 from wcmatch import glob
 from flask import Flask, jsonify, request
 
