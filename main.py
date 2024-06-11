@@ -7,6 +7,7 @@ import asyncio
 import re
 from urllib.parse import urlparse
 import threading
+from dotenv import load_dotenv
 from wcmatch import glob
 from flask import Flask, jsonify, request
 
@@ -217,6 +218,10 @@ def load_commands(directory):
         if filename.endswith('.py'):
             with open(os.path.join(directory, filename), 'r', encoding="utf-8") as file:
                 exec(file.read())
+                
+@bot.command()
+async def ping(ctx):
+    await ctx.send("pong!")
 
 load_commands("src/commands")
 
@@ -267,7 +272,6 @@ async def send_global_message(username, message):
     except Exception as e:
         print(f"Error sending global message: {e}")
 
-# look, here, if you want to like configure nexus api, then change the port to your server's port, dont change the host, then you can send requests to ur server's host
 def run_flask():
     app.run(host='0.0.0.0', port=25561)
     
@@ -277,4 +281,4 @@ if __name__ == "__main__":
         DISCORD_TOKEN = file.read().strip()
     bot.run(DISCORD_TOKEN)
 
-# hi from steeldev
+# hi from steeldev <3
