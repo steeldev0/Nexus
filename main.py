@@ -101,7 +101,11 @@ async def on_message(message):
     
     if await is_user_banned(message.author.id):
         await send_ban_notification(message.author)
-        await delete_message(message)
+
+        # Check if the message is in a set channel
+        c.execute("SELECT channel_id FROM channel_settings WHERE server_id = ? AND channel_id = ?", (message.guild.id, message.channel.id))
+        if c.fetchone():
+            await delete_message(message)
         return
 
     c.execute("SELECT channel_id FROM channel_settings WHERE server_id = ?", (message.guild.id,))
@@ -264,6 +268,7 @@ async def send_global_message(username, message):
     except Exception as e:
         print(f"Error sending global message: {e}")
 
+# look, here, if you want to like configure nexus api, then change the port to your server's port, dont change the host, then you can send requests to ur server's host
 def run_flask():
     app.run(host='0.0.0.0', port=25561)
     
@@ -273,10 +278,4 @@ if __name__ == "__main__":
         DISCORD_TOKEN = file.read().strip()
     bot.run(DISCORD_TOKEN)
 
-# wow only 250 lines excluding commands
-
-# all credits go to nexus and steeldev and the nexus team
-
-# sorry for the last ban incident :/
-
-# thanks for using!
+# hi from steeldev
