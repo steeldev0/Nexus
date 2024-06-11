@@ -74,11 +74,36 @@ def format_timestamp(timestamp):
     else:
         return message_time.strftime('%Y-%m-%d at %I:%M %p')
 
+async def is_user_banned(user_id):
+    try:
+        with open('banned_users.txt', 'r') as file:
+            banned_users = [int(line.strip()) for line in file]
+            return user_id in banned_users
+    except FileNotFoundError:
+        return False
+
+async def send_ban_notification(user):
+    embed = nextcord.Embed(
+        title="Nexus Moderation",
+        description="You are banned from using Nexus. If you think this is a mistake, contact @steeldev",
+        color=nextcord.Color.red()
+    )
+    try:
+        await user.send(embed=embed)
+    except nextcord.Forbidden:
+        pass
+
 @bot.event
 async def on_message(message):
     global last_message
     if (message.author.bot and message.author.id != naviac) or message.content.startswith('/'):
         return
+    
+    if await is_user_banned(message.author.id):
+        await send_ban_notification(message.author)
+        await delete_message(message)
+        return
+
     c.execute("SELECT channel_id FROM channel_settings WHERE server_id = ?", (message.guild.id,))
     set_channel_id = c.fetchone()
     if set_channel_id and message.channel.id == set_channel_id[0]:
@@ -251,5 +276,7 @@ if __name__ == "__main__":
 # wow only 250 lines excluding commands
 
 # all credits go to nexus and steeldev and the nexus team
+
+# sorry for the last ban incident :/
 
 # thanks for using!
