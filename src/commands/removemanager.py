@@ -1,6 +1,6 @@
-@bot.slash_command(name='removemanager')
-async def remove_manager(ctx, user: nextcord.User):
-    if ctx.author.id not in owner_ids:
+@bot.slash_command(name='removemanager', description='Remove a nexus manager')
+async def remove_manager(ctx: nextcord.Interaction, user: nextcord.User):
+    if ctx.user.id not in owner_ids:
         await ctx.send("You need to be an owner to use this command")
         return
     
