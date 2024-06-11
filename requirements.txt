@@ -4,3 +4,4 @@ wcmatch
 flask
 requests
 setuptools
+aiofiles
