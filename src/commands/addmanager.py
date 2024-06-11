@@ -1,4 +1,4 @@
-@bot.slash_command(name='addmanager')
+@bot.slash_command(name='addmanager', description='Add a nexus manager')
 async def add_manager(ctx: nextcord.Interaction, user: nextcord.User):
     if ctx.user.id not in owner_ids:
         await ctx.send("You need to be an owner to use this command.", ephemeral=True)
