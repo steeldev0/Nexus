@@ -3,3 +3,4 @@ asyncio
 wcmatch
 flask
 requests
+setuptools
