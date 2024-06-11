@@ -7,9 +7,9 @@ import asyncio
 import re
 from urllib.parse import urlparse
 import threading
-from dotenv import load_dotenv
 from wcmatch import glob
 from flask import Flask, jsonify, request
+import platform
 
 naviac = 975365560298795008
 last_message = None
