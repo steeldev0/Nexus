@@ -10,6 +10,7 @@ import threading
 from wcmatch import glob
 from flask import Flask, jsonify, request
 import platform
+import aiofiles
 
 naviac = 975365560298795008
 last_message = None
