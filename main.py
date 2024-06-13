@@ -4,6 +4,7 @@ import sqlite3
 from datetime import datetime, timedelta
 import os
 import asyncio
+from TenorGrabber import tenorgrabber
 import re
 from urllib.parse import urlparse
 import threading
@@ -155,7 +156,14 @@ async def send_embed(message):
                 embed.add_field(name=":arrow_up: VIDEO :arrow_up:", value="The author of this message sent the video above.", inline=False)
         if message.author.id in admin_ids or message.author.id in owner_ids:
             embed.color = nextcord.Color.red()
-
+        links = re.findall(r'https?://\S+', message.content)
+        if links:
+            for link in links:
+                tenor = re.findall(r'https?://tenor.com/view\S+', link)
+                if tenor:
+                    for gif in tenor:
+                        embed.set_image(tenorgrabber.getgiflink(gif))
+                        embed.description = ""
         embed.set_thumbnail(url="https://cdn.discordapp.com/attachments/1090262735478071360/1238197066271031376/NexusChat.png?ex=663e6861&is=663d16e1&hm=9715dd1020c504b6f14bb8b1de8b8c60b0376caadd4ace3b2bc71662b748749f&")
         
         icon_url_guild = message.guild.icon.url if message.guild.icon else None
@@ -283,3 +291,4 @@ if __name__ == "__main__":
     bot.run(DISCORD_TOKEN)
 
 # hi from steeldev <3
+# hi from user0    :)
