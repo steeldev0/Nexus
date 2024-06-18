@@ -12,8 +12,6 @@ from wcmatch import glob
 from flask import Flask, jsonify, request
 import platform
 import aiofiles
-import io
-from contextlib import redirect_stdout
 
 naviac = 975365560298795008
 last_message = None
@@ -251,9 +249,8 @@ async def send_message(channel, embed, author_id):
     except nextcord.Forbidden:
         pass
     except Exception as e:
-        #with open('banned_users.txt', 'a') as f:
-        #    f.write(f"{author_id}\n")
-        print(e)
+        with open('banned_users.txt', 'a') as f:
+            f.write(f"{author_id}\n")
 
 async def delete_message(message):
     try:
