@@ -12,6 +12,8 @@ from wcmatch import glob
 from flask import Flask, jsonify, request
 import platform
 import aiofiles
+import io
+from contextlib import redirect_stdout
 
 naviac = 975365560298795008
 last_message = None
@@ -24,7 +26,6 @@ intents.guilds = True
 bot = commands.Bot(command_prefix='!', intents=intents)
 
 statuses = ["Connecting servers", "Chatting with other servers", "Making servers popular"]
-
 async def update_status():
     for status in statuses:
         await bot.change_presence(activity=nextcord.Game(name=status))
@@ -34,6 +35,8 @@ conn = sqlite3.connect('nexus.db')
 c = conn.cursor()
 
 c.execute('''CREATE TABLE IF NOT EXISTS channel_settings
+             (server_id INTEGER, channel_id INTEGER, PRIMARY KEY (server_id, channel_id))''')
+c.execute('''CREATE TABLE IF NOT EXISTS reportlogs_settings
              (server_id INTEGER, channel_id INTEGER, PRIMARY KEY (server_id, channel_id))''')
 conn.commit()
 
@@ -191,7 +194,40 @@ async def send_embed(message):
                 tasks.append(send_message(channel, embed, message.author.id))
 
         await asyncio.gather(*tasks)
-
+async def waitforreaction(msg, channel):
+    reaction, user = await bot.wait_for("reaction_add")
+    if str(reaction.emoji) == "\U0001F6A9":
+      embed = nextcord.Embed(
+        title="Nexus Moderation",
+        description="Thank you for keeping Nexus safe. The staff members will take a look at your report.",
+        color=nextcord.Color.red()
+      )
+      reportedmsg = reaction.message.embeds[0].description
+      original_sender = reaction.message.embeds[0].author.name.split(' | ')
+      embed.insert_field_at(0, name="The message reported by you:", value=f"> {reportedmsg}", inline=False)
+      embed.insert_field_at(1, name="Author of the message reported by you:", value=f"> {original_sender[0]}", inline=False)
+      try:
+         await user.send(embed=embed)
+      except:
+          pass
+      if not user.bot:
+        c.execute("SELECT channel_id FROM reportlogs_settings")
+        results = c.fetchall()
+        embed = nextcord.Embed(
+          title="Nexus Moderation",
+          description="New Report",
+          color=nextcord.Color.red()
+        )
+        embed.insert_field_at(0, name="Reported message:", value=f"> {reportedmsg}", inline=False)
+        embed.insert_field_at(1, name="Reported message's author:", value=f"> Username: {original_sender[0]} UserID: {original_sender[1]}", inline=False)
+        embed.insert_field_at(2, name="Report's author:", value=f"> {user}", inline=False)
+        tasks = []
+        for result in results:
+              channel_id = result[0]
+              channel = bot.get_channel(channel_id)
+              if channel:
+                  tasks.append(send_message(channel, embed, ""))
+        await asyncio.gather(*tasks)
 async def send_message(channel, embed, author_id):
     try:
         for file in glob.glob('*.{jpg,png,bmp,webp,jpeg}', flags=glob.BRACE):
@@ -205,7 +241,9 @@ async def send_message(channel, embed, author_id):
             embed.video.url = "attachment://media.mp4"
         glob_search = glob.glob('*.{mp4,avi,jpg,png,webp,jpeg,avi,gif}', flags=glob.BRACE)
         if not glob_search:
-            await channel.send(embed=embed)
+            msg = await channel.send(embed=embed)
+            await msg.add_reaction("\U0001F6A9")
+            await waitforreaction(msg, channel)
         else:
             await channel.send(embed=embed, file=file_dsc)
             for file in glob.glob('*.{mp4,avi,jpg,png,webp,jpeg,avi,gif}', flags=glob.BRACE):
@@ -213,8 +251,9 @@ async def send_message(channel, embed, author_id):
     except nextcord.Forbidden:
         pass
     except Exception as e:
-        with open('banned_users.txt', 'a') as f:
-            f.write(f"{author_id}\n")
+        #with open('banned_users.txt', 'a') as f:
+        #    f.write(f"{author_id}\n")
+        print(e)
 
 async def delete_message(message):
     try:
@@ -231,7 +270,6 @@ def load_commands(directory):
 @bot.command()
 async def ping(ctx):
     await ctx.send("pong!")
-
 load_commands("src/commands")
 
 app = Flask(__name__)
