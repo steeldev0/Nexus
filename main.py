@@ -243,9 +243,11 @@ async def send_message(channel, embed, author_id):
             await msg.add_reaction("\U0001F6A9")
             await waitforreaction(msg, channel)
         else:
-            await channel.send(embed=embed, file=file_dsc)
+            msg = await channel.send(embed=embed, file=file_dsc)
             for file in glob.glob('*.{mp4,avi,jpg,png,webp,jpeg,avi,gif}', flags=glob.BRACE):
                 os.remove(file)
+            await msg.add_reaction("\U0001F6A9")
+            await waitforreaction(msg, channel)
     except nextcord.Forbidden:
         pass
     except Exception as e:
