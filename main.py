@@ -6,7 +6,7 @@ import os
 import asyncio
 from TenorGrabber import tenorgrabber
 import re
-from urllib.parse import urlparse
+from urllib.parse import urlparse, urlunparse
 import threading
 from wcmatch import glob
 from flask import Flask, jsonify, request
@@ -105,7 +105,14 @@ def is_allowed_link(link):
     try:
         with open('unblocked_links.txt', 'r', encoding="utf-8") as file:
             allowed_links = [line.strip() for line in file]
-            return link in allowed_links
+            parsed_link = urlparse(link)
+            base_link = f"{parsed_link.scheme}://{parsed_link.netloc}"
+            for allowed_link in allowed_links:
+                parsed_allowed_link = urlparse(allowed_link)
+                base_allowed_link = f"{parsed_allowed_link.scheme}://{parsed_allowed_link.netloc}"
+                if base_link == base_allowed_link or link.startswith(allowed_link):
+                    return True
+            return False
     except FileNotFoundError:
         return False
 
@@ -126,23 +133,22 @@ async def on_message(message):
     if (message.author.bot and message.author.id != naviac) or message.content.startswith('/'):
         return
 
-    if await is_user_banned(message.author.id):
-        await send_ban_notification(message.author)
-        c.execute("SELECT channel_id FROM channel_settings WHERE server_id = ? AND channel_id = ?", (message.guild.id, message.channel.id))
-        if c.fetchone():
-            await delete_message(message)
-        return
-
-    if contains_disallowed_link(message.content):
-        links = re.findall(r'https?://\S+', message.content)
-        if any(not is_allowed_link(link) for link in links):
-            await send_link_warning(message.author)
+    c.execute("SELECT channel_id FROM channel_settings WHERE server_id = ?", (message.guild.id,))
+    set_channel_id = c.fetchone()
+    
+    if set_channel_id and message.channel.id == set_channel_id[0]:
+        if await is_user_banned(message.author.id):
+            await send_ban_notification(message.author)
             await delete_message(message)
             return
 
-    c.execute("SELECT channel_id FROM channel_settings WHERE server_id = ?", (message.guild.id,))
-    set_channel_id = c.fetchone()
-    if set_channel_id and message.channel.id == set_channel_id[0]:
+        if contains_disallowed_link(message.content):
+            links = re.findall(r'https?://\S+', message.content)
+            if any(not is_allowed_link(link) for link in links):
+                await send_link_warning(message.author)
+                await delete_message(message)
+                return
+
         last_message = {
             "username": message.author.name,
             "content": message.content,
@@ -310,8 +316,8 @@ async def send_global_message(username, message):
     except Exception as e:
         print(f"Error sending global message: {e}")
 
-# those are just some api configuration, if you're hosting this, then if you want the api then change the port to the server port, thats all!
-
+# configure this if you want to setup nexus api, replace the port with your server port
+        
 def run_flask():
     app.run(host='0.0.0.0', port=25561)
     
