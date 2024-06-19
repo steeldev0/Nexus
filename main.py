@@ -95,19 +95,50 @@ async def send_ban_notification(user):
     except nextcord.Forbidden:
         pass
 
+def contains_disallowed_link(content):
+    disallowed_keywords = ['.com', '.gg', 'https', '://']
+    if any(keyword in content for keyword in disallowed_keywords):
+        return True
+    return False
+
+def is_allowed_link(link):
+    try:
+        with open('unblocked_links.txt', 'r', encoding="utf-8") as file:
+            allowed_links = [line.strip() for line in file]
+            return link in allowed_links
+    except FileNotFoundError:
+        return False
+
+async def send_link_warning(user):
+    embed = nextcord.Embed(
+        title="Nexus Moderation",
+        description="You cannot send links/server invites for obvious reasons.",
+        color=nextcord.Color.red()
+    )
+    try:
+        await user.send(embed=embed)
+    except nextcord.Forbidden:
+        pass
+
 @bot.event
 async def on_message(message):
     global last_message
     if (message.author.bot and message.author.id != naviac) or message.content.startswith('/'):
         return
-    
+
     if await is_user_banned(message.author.id):
         await send_ban_notification(message.author)
-
         c.execute("SELECT channel_id FROM channel_settings WHERE server_id = ? AND channel_id = ?", (message.guild.id, message.channel.id))
         if c.fetchone():
             await delete_message(message)
         return
+
+    if contains_disallowed_link(message.content):
+        links = re.findall(r'https?://\S+', message.content)
+        if any(not is_allowed_link(link) for link in links):
+            await send_link_warning(message.author)
+            await delete_message(message)
+            return
 
     c.execute("SELECT channel_id FROM channel_settings WHERE server_id = ?", (message.guild.id,))
     set_channel_id = c.fetchone()
