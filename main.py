@@ -104,7 +104,6 @@ async def on_message(message):
     if await is_user_banned(message.author.id):
         await send_ban_notification(message.author)
 
-        # Check if the message is in a set channel
         c.execute("SELECT channel_id FROM channel_settings WHERE server_id = ? AND channel_id = ?", (message.guild.id, message.channel.id))
         if c.fetchone():
             await delete_message(message)
@@ -213,8 +212,7 @@ async def send_message(channel, embed, author_id):
     except nextcord.Forbidden:
         pass
     except Exception as e:
-        with open('banned_users.txt', 'a') as f:
-            f.write(f"{author_id}\n")
+        print(e)
 
 async def delete_message(message):
     try:
@@ -291,4 +289,3 @@ if __name__ == "__main__":
     bot.run(DISCORD_TOKEN)
 
 # hi from steeldev <3
-# hi from user0    :)
