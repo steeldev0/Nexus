@@ -310,6 +310,8 @@ async def send_global_message(username, message):
     except Exception as e:
         print(f"Error sending global message: {e}")
 
+# those are just some api configuration, if you're hosting this, then if you want the api then change the port to the server port, thats all!
+
 def run_flask():
     app.run(host='0.0.0.0', port=25561)
     
