@@ -228,9 +228,8 @@ async def send_embed(message):
 
         await asyncio.gather(*tasks)
 
-async def send_message(channel, embed):
+async def send_message(channel, embed, author_id):
     try:
-        file_dsc = None
         for file in glob.glob('*.{jpg,png,bmp,webp,jpeg}', flags=glob.BRACE):
             file_dsc = nextcord.File(file, filename="media.jpg")
             embed.set_image(url="attachment://media.jpg")
@@ -257,12 +256,16 @@ async def delete_message(message):
         await message.delete()
     except nextcord.Forbidden:
         pass
-
+    
 def load_commands(directory):
     for filename in os.listdir(directory):
         if filename.endswith('.py'):
             with open(os.path.join(directory, filename), 'r', encoding="utf-8") as file:
                 exec(file.read())
+                
+@bot.command()
+async def ping(ctx):
+    await ctx.send("pong!")
 
 load_commands("src/commands")
 
@@ -278,25 +281,25 @@ def get_last_message():
             return jsonify(last_message)
         else:
             return jsonify({"message": "No messages sent yet."})
-
+    
 @app.route('/send_message', methods=['POST'])
 def handle_send_message():
     username = request.headers.get('username')
     message = request.headers.get('message')
-
+    
     if not username or not message:
         return "Missing 'username' or 'message' in headers", 400
-
-    asyncio.run_coroutine_threadsafe(send_global_message(message), bot.loop)
+    
+    asyncio.run_coroutine_threadsafe(send_global_message(username, message), bot.loop)
     return "Message sent", 200
 
-async def send_global_message(message):
+async def send_global_message(username, message):
     try:
         embed = nextcord.Embed(
             description=message,
             color=nextcord.Color.blue()
         )
-        embed.set_author(name="Global Nexus Website")
+        embed.set_author(name=username)
         embed.set_footer(text="Global nexus website")
 
         c.execute("SELECT channel_id FROM channel_settings")
@@ -307,7 +310,7 @@ async def send_global_message(message):
             channel = bot.get_channel(channel_id)
             if channel:
                 tasks.append(send_message(channel, embed))
-
+        
         await asyncio.gather(*tasks)
 
     except Exception as e:
