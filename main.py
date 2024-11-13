@@ -13,7 +13,6 @@ from flask import Flask, jsonify, request
 import platform
 import aiofiles
 
-naviac = 975365560298795008
 last_message = None
 
 startTime = datetime.now()
@@ -130,8 +129,6 @@ async def send_link_warning(user):
 @bot.event
 async def on_message(message):
     global last_message
-    if (message.author.bot and message.author.id != naviac) or message.content.startswith('/'):
-        return
 
     c.execute("SELECT channel_id FROM channel_settings WHERE server_id = ?", (message.guild.id,))
     set_channel_id = c.fetchone()
